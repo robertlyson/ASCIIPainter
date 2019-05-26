@@ -1,0 +1,71 @@
+﻿@page "/"
+@using System.Drawing
+@using Microsoft.Extensions.Options
+@using WebApp.Configuration
+@using WebApp.Data
+
+@inject IOptions<PexelsClientDetails> Configuration
+
+<div class="navbar navbar-expand-lg fixed-top navbar-light bg-light">
+   <div class="container">
+      <a href="../" class="navbar-brand">ASCII Painter</a>
+   </div>
+</div>
+<div class="container">
+   <fieldset class="bs-component" >
+      <form>
+         <div class="container-fluid">
+            <div class="row">
+               <div><legend>What I can paint for you today?</legend></div>
+               <div><img src="https://media.giphy.com/media/13V60VgE2ED7oc/giphy.gif" width="50" /></div>
+            </div>
+         </div>
+         <fieldset>
+            <input type="text" bind="@ToPaint" placeholder="search.." class="form-control" />
+            <button type="submit" onclick="@PaintAsync" class="btn btn-primary" style="margin-top: 8px;">Go</button>
+         </fieldset>
+      </form>
+   </fieldset>
+   <div hidden="@Found.NotFound" style="margin-top: 16px;" class="h-100">
+      <div style="font-family: monospace; white-space: pre; zoom: 25%">@Found.Ascii</div>
+      <a href="@Found.Uri" target="_blank" style="float: right;" >see original</a>
+   </div>
+</div>
+
+@functions{
+
+    class FoundImage
+    {
+        public string Uri { get; set; }
+        public string Ascii { get; set; }
+        public bool NotFound => Ascii == null;
+    }
+
+    string ToPaint = string.Empty;
+    FoundImage Found = new FoundImage();
+    
+    async Task PaintAsync()
+    {
+        Found = new FoundImage{};
+        using (var httpClient = new HttpClient())
+        {
+            Uri found;
+            try
+            {
+                found = await Functions.FindImage(httpClient, Configuration.Value, ToPaint);
+            }
+            catch (Exception e)
+            {
+                Found = new FoundImage {Uri = string.Empty, Ascii = $"Nothing found ¯\\_(ツ)_/¯"};
+                return;
+            }
+            var foundImage = await Functions.DownloadImage(httpClient, found);
+            using (var bitmap = new Bitmap(foundImage))
+            {
+                var ascii = Functions.ConvertImageToAsciiArt(bitmap, 200);
+
+                Found = new FoundImage {Uri = found.ToString(), Ascii = ascii};
+            }
+        }
+    }
+}
