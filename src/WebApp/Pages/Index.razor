@@ -7,29 +7,29 @@
 @inject IOptions<PexelsClientDetails> Configuration
 
 <div class="navbar navbar-expand-lg fixed-top navbar-light bg-light">
-   <div class="container">
-      <a href="../" class="navbar-brand">ASCII Painter</a>
-   </div>
+    <div class="container">
+        <a href="../" class="navbar-brand">ASCII Painter</a>
+    </div>
 </div>
 <div class="container">
-   <fieldset class="bs-component" >
-      <form>
-         <div class="container-fluid">
+    <fieldset class="bs-component">
+        <div class="container-fluid">
             <div class="row">
-               <div><legend>What I can paint for you today?</legend></div>
-               <div><img src="https://media.giphy.com/media/13V60VgE2ED7oc/giphy.gif" width="50" /></div>
+                <div>
+                    <legend>What I can paint for you today?</legend>
+                </div>
+                <div><img src="https://media.giphy.com/media/13V60VgE2ED7oc/giphy.gif" width="50" /></div>
             </div>
-         </div>
-         <fieldset>
+        </div>
+        <fieldset>
             <input type="text" bind="@ToPaint" placeholder="search.." class="form-control" />
-            <button type="submit" onclick="@PaintAsync" class="btn btn-primary" style="margin-top: 8px;">Go</button>
-         </fieldset>
-      </form>
-   </fieldset>
-   <div hidden="@Found.NotFound" style="margin-top: 16px;" class="h-100">
-      <div style="font-family: monospace; white-space: pre; zoom: 25%">@Found.Ascii</div>
-      <a href="@Found.Uri" target="_blank" style="float: right;" >see original</a>
-   </div>
+            <button type="button" onclick="@PaintAsync" class="btn btn-primary" style="margin-top: 8px;">Go</button>
+        </fieldset>
+    </fieldset>
+    <div hidden="@Found.NotFound" style="margin-top: 16px;" class="h-100">
+        <div style="font-family: monospace; white-space: pre; zoom: 25%">@Found.Ascii</div>
+        <a href="@Found.Uri" target="_blank" style="float: right;">see original</a>
+    </div>
 </div>
 
 @functions{
@@ -38,15 +38,14 @@
     {
         public string Uri { get; set; }
         public string Ascii { get; set; }
-        public bool NotFound => Ascii == null;
+        public bool NotFound => string.IsNullOrEmpty(Ascii);
     }
 
     string ToPaint = string.Empty;
-    FoundImage Found = new FoundImage();
-    
+    FoundImage Found = new FoundImage { };
+
     async Task PaintAsync()
     {
-        Found = new FoundImage{};
         using (var httpClient = new HttpClient())
         {
             Uri found;
